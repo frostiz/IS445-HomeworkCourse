@@ -11,15 +11,36 @@ import * as Yup from "yup";
 
 const schema = Yup.object({
 	name: Yup.string().required(),
-	email: Yup.string().required(),
-	phone: Yup.string().required(),
+	email: Yup.string()
+	.required()
+	.matches(/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/,"The email must use the pattern \"username@server.domain\""),
+	phone: Yup.string()
+	.required()
+	.length(10, 'The phone number must contain 10 digits.')
+	.matches(/^[0-9]{10}$/),
 });
 
-function Create({ user = { name: "", email: "", phone: "" } }) {
+function Create(props) {
+	const { history } = props;
+
 	const onCreate = (values) => {
 		const db = firebase.firestore();
 		db.collection("users").add(values);
+		history.push('/');
 	};
+
+	const onUpdate = (values) => {
+		const db = firebase.firestore()
+		db.collection('users').doc(values.id).set(values)
+		history.push('/');
+	}
+
+	const { location } = props;
+	if (!location.state) location.state = {};
+
+	const { user = { name: "", email: "", phone: "" } } = location.state;
+
+	let isEdit = user.id ? true : false;
 
 	return (
 		<div>
@@ -28,7 +49,7 @@ function Create({ user = { name: "", email: "", phone: "" } }) {
 				initialValues={user}
 				validateOnChange={true}
 				validateOnBlur={false}
-				onSubmit={onCreate}
+				onSubmit={isEdit ? onUpdate : onCreate}
 			>
 				{({
 					handleSubmit,
@@ -66,7 +87,7 @@ function Create({ user = { name: "", email: "", phone: "" } }) {
 									placeholder="Email"
 									value={values.email}
 									onChange={(e) => setFieldTouched("email") && handleChange(e)}
-									isInvalid={touched.name && !!errors.email}
+									isInvalid={touched.email && !!errors.email}
 									isValid={touched.email && !errors.email}
 								/>
 
@@ -90,7 +111,7 @@ function Create({ user = { name: "", email: "", phone: "" } }) {
 										onChange={(e) =>
 											setFieldTouched("phone") && handleChange(e)
 										}
-										isInvalid={touched.name && !!errors.phone}
+										isInvalid={touched.phone && !!errors.phone}
 										isValid={touched.phone && !errors.phone}
 									/>
 									<Form.Control.Feedback>Looks good!</Form.Control.Feedback>

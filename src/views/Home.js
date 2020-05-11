@@ -4,17 +4,28 @@ import firebase from "../firebase";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 
-function Home() {
+function Home(props) {
 	const [users, setUsers] = useState([]);
 
+	const fetchData = async () => {
+		const db = firebase.firestore();
+		const data = await db.collection("users").get();
+		setUsers(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+	};
+
 	useEffect(() => {
-		const fetchData = async () => {
-			const db = firebase.firestore();
-			const data = await db.collection("users").get();
-			setUsers(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-		};
 		fetchData();
 	}, []);
+
+	const onDelete = (values) => {
+		if (window.confirm("Are you sure ?")) {
+			const db = firebase.firestore();
+			db.collection("users").doc(values.id).delete();
+			fetchData();
+		}
+	};
+
+	const { history } = props;
 
 	return (
 		<div>
@@ -36,14 +47,35 @@ function Home() {
 							<td>{user.email}</td>
 							<td>{user.phone}</td>
 							<td style={{ width: "min-content" }}>
-								<Button variant="outline-success" className="mr-2">Edit</Button>
-								<Button variant="outline-danger">Delete</Button>
+								<Button
+									variant="outline-primary"
+									className="mr-2"
+									onClick={() => history.push("/details", { user })}
+								>
+									Details
+								</Button>
+								<Button
+									variant="outline-warning"
+									className="mr-2"
+									onClick={() => history.push("/create", { user })}
+								>
+									Edit
+								</Button>
+								<Button
+									variant="outline-danger"
+									className=""
+									onClick={() => onDelete(user)}
+								>
+									Delete
+								</Button>
 							</td>
 						</tr>
 					))}
 				</tbody>
 			</Table>
-			<Button variant="success" href="/create">Create</Button>
+			<Button variant="success" href="/create">
+				Create
+			</Button>
 		</div>
 	);
 }

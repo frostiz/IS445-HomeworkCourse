@@ -4,6 +4,7 @@ import history from "./utils/history.js";
 
 import Home from "./views/Home";
 import Create from "./views/Create";
+import Details from "./views/Details";
 import NavBar from "./views/NavBar";
 import NoMatch from "./views/NoMatch";
 
@@ -19,6 +20,7 @@ function App() {
 				<Switch>
 					<Route exact path="/" component={Home} />
 					<Route exact path="/create" component={Create} />
+					<Route exact path="/details" component={Details} />
 					<Route component={NoMatch} />
 				</Switch>
 			</div>
